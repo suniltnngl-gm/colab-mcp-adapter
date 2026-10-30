@@ -1,6 +1,6 @@
 # Current Release Readiness — Colab MCP Adapter v0.1.0
 
-**Status:** Package verification passed; release remains NOT READY pending Git baseline and remote identification.
+**Status:** Local baseline established; package verification passed for this report revision. The release tag remains deferred pending review of the final readiness commit.
 
 **Assessment date:** 2026-10-30  
 **Version:** `0.1.0`
@@ -25,22 +25,32 @@ The final archive sizes and SHA-256 digests are recorded in the operator
 handoff. The sdist hash is deliberately not embedded here because this report
 is itself included in that archive.
 
-## Git and release blockers
+## Git state and tag review
 
-- Branch: `main`.
-- Initial Git state: zero commits; the 22 manifest files are untracked (16
-  status entries when the `src/` and `tests/` directories are summarized).
+- Branch: `main`; working tree clean at the time of this assessment.
+- Baseline commit: `195b64ee13d0d877bbd8009e6096ca6aa3d867ce`
+  (`feat: establish colab-mcp-adapter v0.1.0 baseline`).
+- The baseline contains exactly the 22 paths in `RELEASE-MANIFEST.md`.
+- Tests were rerun after the baseline commit: **71 passed**.
 - Git identity is configured as `suniltnngl-gm
   <139890396+suniltnngl-gm@users.noreply.github.com>`.
-- No Git remote is configured, so the intended repository and publication
-  destination cannot be verified.
-- No commit, tag, push, or publication has been performed.
+- The baseline commit was created with `core.hooksPath=NUL`, so Git hooks were
+  bypassed for that commit. The repository has no configured hooks path and
+  only Git's sample hook files are present; no hook validation is claimed.
+- No Git remote is configured. The operator selected **local-only for now**;
+  no destination should be inferred.
+- `v0.1.0` is the proposed release tag and does not currently exist. The
+  manifest and version are consistent with that tag; tag creation is
+  intentionally deferred until the readiness update is committed and its
+  target reviewed. No tag, push, or publication has been performed.
 
-**Disposition:** Documentation, license, manifest, tests, and package contents
-are verified. Do not publish until the intended remote is identified and the
-initial Git baseline/release tag are established. The original checkpoint
-below is retained only as historical context; its release-ready and clean-Git
-claims are superseded and must not be relied on.
+**Disposition:** The initial baseline commit is clean; this readiness update
+is a follow-up documentation change. The source distribution was rebuilt
+with this report revision and its embedded report and manifest were verified.
+Before tagging, commit this update and confirm the tag target is that commit.
+The original checkpoint below is retained only as historical context; its
+release-ready and clean-Git claims are superseded. Publishing remains blocked
+until the operator supplies the intended remote.
 
 ---
 
