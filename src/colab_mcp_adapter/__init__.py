@@ -1,0 +1,82 @@
+"""Google Colab CLI MCP adapter."""
+
+from .adapter import ColabAdapter
+from .contracts import (
+    SessionCreateParams,
+    SessionCreateResult,
+    SessionListResult,
+    SessionGetParams,
+    SessionGetResult,
+    SessionStopParams,
+    SessionStopResult,
+    SessionInfo,
+    CodeExecuteParams,
+    FileExecuteParams,
+    ExecutionResult,
+    SessionGetURLParams,
+    SessionGetURLResult,
+    SessionLogParams,
+    SessionLogResult,
+    ColabMCPError,
+    SessionNotFoundError,
+    SessionAlreadyExistsError,
+    SessionNotReadyError,
+    ExecutionTimeoutError,
+    KernelError,
+    AuthExpiredError,
+    QuotaExceededError,
+    CLIError,
+)
+from .parser import (
+    parse_session_line,
+    parse_sessions_output,
+    parse_status_output,
+    parse_create_output,
+    validate_session_id,
+    classify_cli_error,
+    parse_url_output,
+    parse_log_output,
+    parse_log_list_output,
+)
+
+__version__ = "0.1.0"
+
+__all__ = [
+    # Adapter
+    "ColabAdapter",
+    # Contracts
+    "SessionCreateParams",
+    "SessionCreateResult",
+    "SessionListResult",
+    "SessionGetParams",
+    "SessionGetResult",
+    "SessionStopParams",
+    "SessionStopResult",
+    "SessionInfo",
+    "CodeExecuteParams",
+    "FileExecuteParams",
+    "ExecutionResult",
+    "SessionGetURLParams",
+    "SessionGetURLResult",
+    "SessionLogParams",
+    "SessionLogResult",
+    "ColabMCPError",
+    "SessionNotFoundError",
+    "SessionAlreadyExistsError",
+    "SessionNotReadyError",
+    "ExecutionTimeoutError",
+    "KernelError",
+    "AuthExpiredError",
+    "QuotaExceededError",
+    "CLIError",
+    # Parser
+    "parse_session_line",
+    "parse_sessions_output",
+    "parse_status_output",
+    "parse_create_output",
+    "validate_session_id",
+    "classify_cli_error",
+    "parse_url_output",
+    "parse_log_output",
+    "parse_log_list_output",
+]
