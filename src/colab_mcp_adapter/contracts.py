@@ -6,6 +6,8 @@ Phase D: Code/file execution tools.
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 # --- Common Types ---
@@ -22,10 +24,19 @@ class SessionInfo(BaseModel):
 
 class SessionCreateParams(BaseModel):
     """Parameters for creating a new Colab session."""
-    name: str | None = Field(default=None, description="Optional session name (auto-generated if omitted)")
-    gpu: str | None = Field(default=None, description="GPU variant: T4, L4, G4, H100, A100")
-    tpu: str | None = Field(default=None, description="TPU variant: v5e1, v6e1")
-    high_mem: bool = Field(default=False, description="Request high-RAM machine shape (requires Pro/Pro+)")
+    name: str | None = Field(
+        default=None, description="Optional session name (auto-generated if omitted)"
+    )
+    gpu: str | None = Field(
+        default=None, description="GPU variant: T4, L4, G4, H100, A100"
+    )
+    tpu: str | None = Field(
+        default=None, description="TPU variant: v5e1, v6e1"
+    )
+    high_mem: bool = Field(
+        default=False,
+        description="Request high-RAM machine shape (requires Pro/Pro+)",
+    )
 
 
 class SessionCreateResult(BaseModel):
@@ -110,15 +121,28 @@ class SessionGetURLResult(BaseModel):
 
 class SessionLogParams(BaseModel):
     """Parameters for getting session logs."""
-    session: str | None = Field(default=None, description="Session display name (omit to list all sessions with logs)")
-    lines: int | None = Field(default=None, description="Number of lines to show (default: all)", ge=1)
-    type: str | None = Field(default=None, description="Filter by event type (e.g., execution, file_operation, session_created)")
+    session: str | None = Field(
+        default=None,
+        description="Session display name (omit to list all sessions with logs)",
+    )
+    lines: int | None = Field(
+        default=None,
+        description="Number of lines to show (default: all)",
+        ge=1,
+    )
+    type: str | None = Field(
+        default=None,
+        description="Filter by event type (e.g., execution, file_operation, session_created)",
+    )
 
 
 class SessionLogResult(BaseModel):
     """Result of getting session logs."""
     logs: list[str] = Field(description="Log lines")
-    session: str | None = Field(default=None, description="Session name (None if listing all sessions)")
+    session: str | None = Field(
+        default=None,
+        description="Session name (None if listing all sessions)",
+    )
 
 
 # --- Error Types ---
@@ -131,7 +155,7 @@ class ColabMCPError(Exception):
         message: str,
         code: str,
         status_code: int = 500,
-        details: dict | None = None,
+        details: dict[str, Any] | None = None,
     ):
         super().__init__(message)
         self.message = message
@@ -142,7 +166,7 @@ class ColabMCPError(Exception):
 
 class SessionNotFoundError(ColabMCPError):
     """Session not found."""
-    def __init__(self, name: str, details: dict | None = None):
+    def __init__(self, name: str, details: dict[str, Any] | None = None):
         super().__init__(
             f"Session '{name}' not found",
             "SESSION_NOT_FOUND",
@@ -153,7 +177,7 @@ class SessionNotFoundError(ColabMCPError):
 
 class SessionAlreadyExistsError(ColabMCPError):
     """Session name already exists."""
-    def __init__(self, name: str, details: dict | None = None):
+    def __init__(self, name: str, details: dict[str, Any] | None = None):
         super().__init__(
             f"Session '{name}' already exists",
             "SESSION_ALREADY_EXISTS",
@@ -164,7 +188,7 @@ class SessionAlreadyExistsError(ColabMCPError):
 
 class SessionNotReadyError(ColabMCPError):
     """Session not ready for operation."""
-    def __init__(self, name: str, details: dict | None = None):
+    def __init__(self, name: str, details: dict[str, Any] | None = None):
         super().__init__(
             f"Session '{name}' not ready",
             "SESSION_NOT_READY",
@@ -175,7 +199,7 @@ class SessionNotReadyError(ColabMCPError):
 
 class ExecutionTimeoutError(ColabMCPError):
     """Execution timed out."""
-    def __init__(self, timeout: int, details: dict | None = None):
+    def __init__(self, timeout: int, details: dict[str, Any] | None = None):
         super().__init__(
             f"Execution timed out after {timeout}s",
             "EXECUTION_TIMEOUT",
@@ -186,7 +210,7 @@ class ExecutionTimeoutError(ColabMCPError):
 
 class KernelError(ColabMCPError):
     """Kernel execution error."""
-    def __init__(self, message: str, details: dict | None = None):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__(
             f"Kernel error: {message}",
             "KERNEL_ERROR",
@@ -197,7 +221,7 @@ class KernelError(ColabMCPError):
 
 class AuthExpiredError(ColabMCPError):
     """Authentication expired."""
-    def __init__(self, details: dict | None = None):
+    def __init__(self, details: dict[str, Any] | None = None):
         super().__init__(
             "Authentication expired; re-authentication required",
             "AUTH_EXPIRED",
@@ -208,7 +232,7 @@ class AuthExpiredError(ColabMCPError):
 
 class QuotaExceededError(ColabMCPError):
     """Resource quota exceeded."""
-    def __init__(self, details: dict | None = None):
+    def __init__(self, details: dict[str, Any] | None = None):
         super().__init__(
             "Resource quota exceeded",
             "QUOTA_EXCEEDED",
@@ -219,7 +243,7 @@ class QuotaExceededError(ColabMCPError):
 
 class CLIError(ColabMCPError):
     """Generic CLI error."""
-    def __init__(self, message: str, exit_code: int, details: dict | None = None):
+    def __init__(self, message: str, exit_code: int, details: dict[str, Any] | None = None):
         super().__init__(
             message,
             "CLI_ERROR",

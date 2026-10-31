@@ -7,11 +7,13 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import Any
 
 from .contracts import SessionInfo
 
-# Regex for parsing session lines from `colab sessions` and `colab status`
-# Format: [name] m-s-<id> | Hardware: <hw> | Shape: <shape> | Variant: <variant> [| Status: <status>]
+# Session line regex from `colab sessions`/`colab status` output.
+# Format: [name] m-s-<id> | Hardware: <hw> | Shape: <shape> |
+#         Variant: <variant> [| Status: <status>]
 # Hardware/Shape/Variant can contain hyphens (e.g., High-Mem)
 SESSION_LINE_REGEX = re.compile(
     r'^\[(.+?)\]\s+'               # [name]
@@ -170,7 +172,7 @@ def parse_create_output(output: str) -> ParsedSession | None:
     return None
 
 
-def classify_cli_error(stderr: str, exit_code: int) -> tuple[str, int, dict]:
+def classify_cli_error(stderr: str, exit_code: int) -> tuple[str, int, dict[str, Any]]:
     """Classify CLI error from stderr and exit code.
 
     Returns:

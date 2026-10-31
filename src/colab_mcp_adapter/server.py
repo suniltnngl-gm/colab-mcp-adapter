@@ -33,9 +33,10 @@ adapter = ColabAdapter()
 def _map_error(e: ColabMCPError) -> ToolError:
     """Map ColabMCPError to MCP ToolError with appropriate error code."""
     return ToolError(
-        message=e.message,
-        code=e.code,
-        data={"status_code": e.status_code, **e.details},
+        e.message,
+        e.code,
+        e.status_code,
+        e.details,
     )
 
 
@@ -69,7 +70,7 @@ def colab_session_create(
     try:
         return adapter.create_session(params)
     except ColabMCPError as e:
-        raise _map_error(e)
+        raise _map_error(e) from e
 
 
 @mcp.tool()
@@ -85,7 +86,7 @@ def colab_session_list() -> SessionListResult:
     try:
         return adapter.list_sessions()
     except ColabMCPError as e:
-        raise _map_error(e)
+        raise _map_error(e) from e
 
 
 @mcp.tool()
@@ -105,7 +106,7 @@ def colab_session_get(name: str) -> SessionGetResult:
     try:
         return adapter.get_session(params)
     except ColabMCPError as e:
-        raise _map_error(e)
+        raise _map_error(e) from e
 
 
 @mcp.tool()
@@ -129,7 +130,7 @@ def colab_session_stop(name: str) -> SessionStopResult:
     try:
         return adapter.stop_session(params)
     except ColabMCPError as e:
-        raise _map_error(e)
+        raise _map_error(e) from e
 
 
 @mcp.tool()
@@ -151,7 +152,8 @@ def colab_code_execute(
         Execution result with stdout, stderr, exit_code, execution_time
 
     Raises:
-        ToolError: SESSION_NOT_FOUND, EXECUTION_TIMEOUT, KERNEL_ERROR, AUTH_EXPIRED, QUOTA_EXCEEDED, CLI_ERROR
+        ToolError: SESSION_NOT_FOUND, EXECUTION_TIMEOUT, KERNEL_ERROR,
+            AUTH_EXPIRED, QUOTA_EXCEEDED, CLI_ERROR
     """
     params = CodeExecuteParams(
         session=session,
@@ -162,7 +164,7 @@ def colab_code_execute(
     try:
         return adapter.execute_code(params)
     except ColabMCPError as e:
-        raise _map_error(e)
+        raise _map_error(e) from e
 
 
 @mcp.tool()
@@ -184,7 +186,8 @@ def colab_file_execute(
         Execution result with stdout, stderr, exit_code, execution_time
 
     Raises:
-        ToolError: SESSION_NOT_FOUND, EXECUTION_TIMEOUT, KERNEL_ERROR, AUTH_EXPIRED, QUOTA_EXCEEDED, CLI_ERROR
+        ToolError: SESSION_NOT_FOUND, EXECUTION_TIMEOUT, KERNEL_ERROR,
+            AUTH_EXPIRED, QUOTA_EXCEEDED, CLI_ERROR
     """
     params = FileExecuteParams(
         session=session,
@@ -195,7 +198,7 @@ def colab_file_execute(
     try:
         return adapter.execute_file(params)
     except ColabMCPError as e:
-        raise _map_error(e)
+        raise _map_error(e) from e
 
 
 @mcp.tool()
@@ -219,7 +222,7 @@ def colab_session_get_url(
     try:
         return adapter.get_session_url(params)
     except ColabMCPError as e:
-        raise _map_error(e)
+        raise _map_error(e) from e
 
 
 @mcp.tool()
@@ -245,7 +248,7 @@ def colab_session_log(
     try:
         return adapter.get_session_log(params)
     except ColabMCPError as e:
-        raise _map_error(e)
+        raise _map_error(e) from e
 
 
 def main() -> None:

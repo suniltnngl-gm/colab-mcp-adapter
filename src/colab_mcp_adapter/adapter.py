@@ -214,7 +214,9 @@ class ColabAdapter:
             elif error_code == "SESSION_NOT_READY":
                 raise SessionNotReadyError(details.get("session_name", "unknown"), details)
             elif error_code == "EXECUTION_TIMEOUT":
-                raise ExecutionTimeoutError(details.get("timeout_seconds", self.default_timeout), details)
+                raise ExecutionTimeoutError(
+                details.get("timeout_seconds", self.default_timeout), details
+            )
             elif error_code == "AUTH_EXPIRED":
                 raise AuthExpiredError(details)
             elif error_code == "QUOTA_EXCEEDED":
@@ -521,161 +523,6 @@ class ColabAdapter:
             execution_time=execution_time,
         )
 
-    # --- Phase E: URL/Log Operations ---
-
-    DEFAULT_URL_TIMEOUT = 30
-    DEFAULT_LOG_TIMEOUT = 30
-
-    def get_session_url(self, params: SessionGetURLParams) -> SessionGetURLResult:
-        """Get the browser URL for a Colab session.
-
-        Args:
-            params: Session name and optional host
-
-        Returns:
-            SessionGetURLResult with the full URL
-
-        Raises:
-            SessionNotFoundError: If session doesn't exist
-            CLIError: For other CLI errors
-        """
-        if not params.session:
-            raise SessionNotFoundError("unknown", {"reason": "empty session name"})
-
-        args = ["url", "--session", params.session]
-        if params.host:
-            args.extend(["--host", params.host])
-
-        result = self._run_cli(args, timeout=self.DEFAULT_URL_TIMEOUT)
-
-        if result.timed_out:
-            raise ExecutionTimeoutError(self.DEFAULT_URL_TIMEOUT)
-
-        if result.exit_code != 0:
-            error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
-            if error_code == "SESSION_NOT_FOUND":
-                raise SessionNotFoundError(params.session, details)
-            elif error_code == "AUTH_EXPIRED":
-                raise AuthExpiredError(details)
-            elif error_code == "QUOTA_EXCEEDED":
-                raise QuotaExceededError(details)
-            else:
-                raise CLIError(result.stderr or "URL fetch failed", result.exit_code, details)
-
-        url = parse_url_output(result.stdout)
-        if not url:
-            raise CLIError("No URL found in output", result.exit_code, {"stdout": result.stdout})
-
-        return SessionGetURLResult(url=url)
-
-    async def get_session_url_async(self, params: SessionGetURLParams) -> SessionGetURLResult:
-        """Async version of get_session_url."""
-        if not params.session:
-            raise SessionNotFoundError("unknown", {"reason": "empty session name"})
-
-        args = ["url", "--session", params.session]
-        if params.host:
-            args.extend(["--host", params.host])
-
-        result = await self._run_cli_async(args, timeout=self.DEFAULT_URL_TIMEOUT)
-
-        if result.timed_out:
-            raise ExecutionTimeoutError(self.DEFAULT_URL_TIMEOUT)
-
-        if result.exit_code != 0:
-            error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
-            if error_code == "SESSION_NOT_FOUND":
-                raise SessionNotFoundError(params.session, details)
-            elif error_code == "AUTH_EXPIRED":
-                raise AuthExpiredError(details)
-            elif error_code == "QUOTA_EXCEEDED":
-                raise QuotaExceededError(details)
-            else:
-                raise CLIError(result.stderr or "URL fetch failed", result.exit_code, details)
-
-        url = parse_url_output(result.stdout)
-        if not url:
-            raise CLIError("No URL found in output", result.exit_code, {"stdout": result.stdout})
-
-        return SessionGetURLResult(url=url)
-
-    def get_session_log(self, params: SessionLogParams) -> SessionLogResult:
-        """Get session history logs.
-
-        Args:
-            params: Session name (optional), lines limit, and type filter
-
-        Returns:
-            SessionLogResult with log lines or session list
-
-        Raises:
-            SessionNotFoundError: If session doesn't exist or has no history
-            CLIError: For other CLI errors
-        """
-        args = ["log"]
-        if params.session:
-            args.extend(["--session", params.session])
-        if params.lines:
-            args.extend(["--lines", str(params.lines)])
-        if params.type:
-            args.extend(["--type", params.type])
-
-        result = self._run_cli(args, timeout=self.DEFAULT_LOG_TIMEOUT)
-
-        if result.timed_out:
-            raise ExecutionTimeoutError(self.DEFAULT_LOG_TIMEOUT)
-
-        if result.exit_code != 0:
-            error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
-            if error_code == "SESSION_NOT_FOUND":
-                raise SessionNotFoundError(params.session or "unknown", details)
-            elif error_code == "AUTH_EXPIRED":
-                raise AuthExpiredError(details)
-            elif error_code == "QUOTA_EXCEEDED":
-                raise QuotaExceededError(details)
-            else:
-                raise CLIError(result.stderr or "Log fetch failed", result.exit_code, details)
-
-        if params.session:
-            logs = parse_log_output(result.stdout)
-            return SessionLogResult(logs=logs, session=params.session)
-        else:
-            sessions = parse_log_list_output(result.stdout)
-            return SessionLogResult(logs=sessions, session=None)
-
-    async def get_session_log_async(self, params: SessionLogParams) -> SessionLogResult:
-        """Async version of get_session_log."""
-        args = ["log"]
-        if params.session:
-            args.extend(["--session", params.session])
-        if params.lines:
-            args.extend(["--lines", str(params.lines)])
-        if params.type:
-            args.extend(["--type", params.type])
-
-        result = await self._run_cli_async(args, timeout=self.DEFAULT_LOG_TIMEOUT)
-
-        if result.timed_out:
-            raise ExecutionTimeoutError(self.DEFAULT_LOG_TIMEOUT)
-
-        if result.exit_code != 0:
-            error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
-            if error_code == "SESSION_NOT_FOUND":
-                raise SessionNotFoundError(params.session or "unknown", details)
-            elif error_code == "AUTH_EXPIRED":
-                raise AuthExpiredError(details)
-            elif error_code == "QUOTA_EXCEEDED":
-                raise QuotaExceededError(details)
-            else:
-                raise CLIError(result.stderr or "Log fetch failed", result.exit_code, details)
-
-        if params.session:
-            logs = parse_log_output(result.stdout)
-            return SessionLogResult(logs=logs, session=params.session)
-        else:
-            sessions = parse_log_list_output(result.stdout)
-            return SessionLogResult(logs=sessions, session=None)
-
     async def execute_code_async(self, params: CodeExecuteParams) -> ExecutionResult:
         """Async version of execute_code."""
         if not params.session:
@@ -923,7 +770,11 @@ class ColabAdapter:
             if "timeout" in stderr_lower:
                 raise ExecutionTimeoutError(params.timeout, {"stderr": result.stderr})
             if "no such file" in stderr_lower or "file not found" in stderr_lower:
-                raise CLIError(f"File not found: {params.file_path}", result.exit_code, {"file_path": params.file_path})
+                raise CLIError(
+                f"File not found: {params.file_path}",
+                result.exit_code,
+                {"file_path": params.file_path},
+            )
             if "traceback" in stderr_lower or "error" in stderr_lower:
                 raise KernelError(result.stderr, {"exit_code": result.exit_code})
             error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
@@ -940,161 +791,6 @@ class ColabAdapter:
             exit_code=result.exit_code,
             execution_time=execution_time,
         )
-
-    # --- Phase E: URL/Log Operations ---
-
-    DEFAULT_URL_TIMEOUT = 30
-    DEFAULT_LOG_TIMEOUT = 30
-
-    def get_session_url(self, params: SessionGetURLParams) -> SessionGetURLResult:
-        """Get the browser URL for a Colab session.
-
-        Args:
-            params: Session name and optional host
-
-        Returns:
-            SessionGetURLResult with the full URL
-
-        Raises:
-            SessionNotFoundError: If session doesn't exist
-            CLIError: For other CLI errors
-        """
-        if not params.session:
-            raise SessionNotFoundError("unknown", {"reason": "empty session name"})
-
-        args = ["url", "--session", params.session]
-        if params.host:
-            args.extend(["--host", params.host])
-
-        result = self._run_cli(args, timeout=self.DEFAULT_URL_TIMEOUT)
-
-        if result.timed_out:
-            raise ExecutionTimeoutError(self.DEFAULT_URL_TIMEOUT)
-
-        if result.exit_code != 0:
-            error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
-            if error_code == "SESSION_NOT_FOUND":
-                raise SessionNotFoundError(params.session, details)
-            elif error_code == "AUTH_EXPIRED":
-                raise AuthExpiredError(details)
-            elif error_code == "QUOTA_EXCEEDED":
-                raise QuotaExceededError(details)
-            else:
-                raise CLIError(result.stderr or "URL fetch failed", result.exit_code, details)
-
-        url = parse_url_output(result.stdout)
-        if not url:
-            raise CLIError("No URL found in output", result.exit_code, {"stdout": result.stdout})
-
-        return SessionGetURLResult(url=url)
-
-    async def get_session_url_async(self, params: SessionGetURLParams) -> SessionGetURLResult:
-        """Async version of get_session_url."""
-        if not params.session:
-            raise SessionNotFoundError("unknown", {"reason": "empty session name"})
-
-        args = ["url", "--session", params.session]
-        if params.host:
-            args.extend(["--host", params.host])
-
-        result = await self._run_cli_async(args, timeout=self.DEFAULT_URL_TIMEOUT)
-
-        if result.timed_out:
-            raise ExecutionTimeoutError(self.DEFAULT_URL_TIMEOUT)
-
-        if result.exit_code != 0:
-            error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
-            if error_code == "SESSION_NOT_FOUND":
-                raise SessionNotFoundError(params.session, details)
-            elif error_code == "AUTH_EXPIRED":
-                raise AuthExpiredError(details)
-            elif error_code == "QUOTA_EXCEEDED":
-                raise QuotaExceededError(details)
-            else:
-                raise CLIError(result.stderr or "URL fetch failed", result.exit_code, details)
-
-        url = parse_url_output(result.stdout)
-        if not url:
-            raise CLIError("No URL found in output", result.exit_code, {"stdout": result.stdout})
-
-        return SessionGetURLResult(url=url)
-
-    def get_session_log(self, params: SessionLogParams) -> SessionLogResult:
-        """Get session history logs.
-
-        Args:
-            params: Session name (optional), lines limit, and type filter
-
-        Returns:
-            SessionLogResult with log lines or session list
-
-        Raises:
-            SessionNotFoundError: If session doesn't exist or has no history
-            CLIError: For other CLI errors
-        """
-        args = ["log"]
-        if params.session:
-            args.extend(["--session", params.session])
-        if params.lines:
-            args.extend(["--lines", str(params.lines)])
-        if params.type:
-            args.extend(["--type", params.type])
-
-        result = self._run_cli(args, timeout=self.DEFAULT_LOG_TIMEOUT)
-
-        if result.timed_out:
-            raise ExecutionTimeoutError(self.DEFAULT_LOG_TIMEOUT)
-
-        if result.exit_code != 0:
-            error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
-            if error_code == "SESSION_NOT_FOUND":
-                raise SessionNotFoundError(params.session or "unknown", details)
-            elif error_code == "AUTH_EXPIRED":
-                raise AuthExpiredError(details)
-            elif error_code == "QUOTA_EXCEEDED":
-                raise QuotaExceededError(details)
-            else:
-                raise CLIError(result.stderr or "Log fetch failed", result.exit_code, details)
-
-        if params.session:
-            logs = parse_log_output(result.stdout)
-            return SessionLogResult(logs=logs, session=params.session)
-        else:
-            sessions = parse_log_list_output(result.stdout)
-            return SessionLogResult(logs=sessions, session=None)
-
-    async def get_session_log_async(self, params: SessionLogParams) -> SessionLogResult:
-        """Async version of get_session_log."""
-        args = ["log"]
-        if params.session:
-            args.extend(["--session", params.session])
-        if params.lines:
-            args.extend(["--lines", str(params.lines)])
-        if params.type:
-            args.extend(["--type", params.type])
-
-        result = await self._run_cli_async(args, timeout=self.DEFAULT_LOG_TIMEOUT)
-
-        if result.timed_out:
-            raise ExecutionTimeoutError(self.DEFAULT_LOG_TIMEOUT)
-
-        if result.exit_code != 0:
-            error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
-            if error_code == "SESSION_NOT_FOUND":
-                raise SessionNotFoundError(params.session or "unknown", details)
-            elif error_code == "AUTH_EXPIRED":
-                raise AuthExpiredError(details)
-            elif error_code == "QUOTA_EXCEEDED":
-                raise QuotaExceededError(details)
-            else:
-                raise CLIError(result.stderr or "Log fetch failed", result.exit_code, details)
-
-        if params.session:
-            logs = parse_log_output(result.stdout)
-            return SessionLogResult(logs=logs, session=params.session)
-        else:
-            sessions = parse_log_list_output(result.stdout)
-            return SessionLogResult(logs=sessions, session=None)
 
     async def execute_file_async(self, params: FileExecuteParams) -> ExecutionResult:
         """Async version of execute_file."""
@@ -1124,7 +820,11 @@ class ColabAdapter:
             if "timeout" in stderr_lower:
                 raise ExecutionTimeoutError(params.timeout, {"stderr": result.stderr})
             if "no such file" in stderr_lower or "file not found" in stderr_lower:
-                raise CLIError(f"File not found: {params.file_path}", result.exit_code, {"file_path": params.file_path})
+                raise CLIError(
+                f"File not found: {params.file_path}",
+                result.exit_code,
+                {"file_path": params.file_path},
+            )
             if "traceback" in stderr_lower or "error" in stderr_lower:
                 raise KernelError(result.stderr, {"exit_code": result.exit_code})
             error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
@@ -1141,158 +841,3 @@ class ColabAdapter:
             exit_code=result.exit_code,
             execution_time=execution_time,
         )
-
-    # --- Phase E: URL/Log Operations ---
-
-    DEFAULT_URL_TIMEOUT = 30
-    DEFAULT_LOG_TIMEOUT = 30
-
-    def get_session_url(self, params: SessionGetURLParams) -> SessionGetURLResult:
-        """Get the browser URL for a Colab session.
-
-        Args:
-            params: Session name and optional host
-
-        Returns:
-            SessionGetURLResult with the full URL
-
-        Raises:
-            SessionNotFoundError: If session doesn't exist
-            CLIError: For other CLI errors
-        """
-        if not params.session:
-            raise SessionNotFoundError("unknown", {"reason": "empty session name"})
-
-        args = ["url", "--session", params.session]
-        if params.host:
-            args.extend(["--host", params.host])
-
-        result = self._run_cli(args, timeout=self.DEFAULT_URL_TIMEOUT)
-
-        if result.timed_out:
-            raise ExecutionTimeoutError(self.DEFAULT_URL_TIMEOUT)
-
-        if result.exit_code != 0:
-            error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
-            if error_code == "SESSION_NOT_FOUND":
-                raise SessionNotFoundError(params.session, details)
-            elif error_code == "AUTH_EXPIRED":
-                raise AuthExpiredError(details)
-            elif error_code == "QUOTA_EXCEEDED":
-                raise QuotaExceededError(details)
-            else:
-                raise CLIError(result.stderr or "URL fetch failed", result.exit_code, details)
-
-        url = parse_url_output(result.stdout)
-        if not url:
-            raise CLIError("No URL found in output", result.exit_code, {"stdout": result.stdout})
-
-        return SessionGetURLResult(url=url)
-
-    async def get_session_url_async(self, params: SessionGetURLParams) -> SessionGetURLResult:
-        """Async version of get_session_url."""
-        if not params.session:
-            raise SessionNotFoundError("unknown", {"reason": "empty session name"})
-
-        args = ["url", "--session", params.session]
-        if params.host:
-            args.extend(["--host", params.host])
-
-        result = await self._run_cli_async(args, timeout=self.DEFAULT_URL_TIMEOUT)
-
-        if result.timed_out:
-            raise ExecutionTimeoutError(self.DEFAULT_URL_TIMEOUT)
-
-        if result.exit_code != 0:
-            error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
-            if error_code == "SESSION_NOT_FOUND":
-                raise SessionNotFoundError(params.session, details)
-            elif error_code == "AUTH_EXPIRED":
-                raise AuthExpiredError(details)
-            elif error_code == "QUOTA_EXCEEDED":
-                raise QuotaExceededError(details)
-            else:
-                raise CLIError(result.stderr or "URL fetch failed", result.exit_code, details)
-
-        url = parse_url_output(result.stdout)
-        if not url:
-            raise CLIError("No URL found in output", result.exit_code, {"stdout": result.stdout})
-
-        return SessionGetURLResult(url=url)
-
-    def get_session_log(self, params: SessionLogParams) -> SessionLogResult:
-        """Get session history logs.
-
-        Args:
-            params: Session name (optional), lines limit, and type filter
-
-        Returns:
-            SessionLogResult with log lines or session list
-
-        Raises:
-            SessionNotFoundError: If session doesn't exist or has no history
-            CLIError: For other CLI errors
-        """
-        args = ["log"]
-        if params.session:
-            args.extend(["--session", params.session])
-        if params.lines:
-            args.extend(["--lines", str(params.lines)])
-        if params.type:
-            args.extend(["--type", params.type])
-
-        result = self._run_cli(args, timeout=self.DEFAULT_LOG_TIMEOUT)
-
-        if result.timed_out:
-            raise ExecutionTimeoutError(self.DEFAULT_LOG_TIMEOUT)
-
-        if result.exit_code != 0:
-            error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
-            if error_code == "SESSION_NOT_FOUND":
-                raise SessionNotFoundError(params.session or "unknown", details)
-            elif error_code == "AUTH_EXPIRED":
-                raise AuthExpiredError(details)
-            elif error_code == "QUOTA_EXCEEDED":
-                raise QuotaExceededError(details)
-            else:
-                raise CLIError(result.stderr or "Log fetch failed", result.exit_code, details)
-
-        if params.session:
-            logs = parse_log_output(result.stdout)
-            return SessionLogResult(logs=logs, session=params.session)
-        else:
-            sessions = parse_log_list_output(result.stdout)
-            return SessionLogResult(logs=sessions, session=None)
-
-    async def get_session_log_async(self, params: SessionLogParams) -> SessionLogResult:
-        """Async version of get_session_log."""
-        args = ["log"]
-        if params.session:
-            args.extend(["--session", params.session])
-        if params.lines:
-            args.extend(["--lines", str(params.lines)])
-        if params.type:
-            args.extend(["--type", params.type])
-
-        result = await self._run_cli_async(args, timeout=self.DEFAULT_LOG_TIMEOUT)
-
-        if result.timed_out:
-            raise ExecutionTimeoutError(self.DEFAULT_LOG_TIMEOUT)
-
-        if result.exit_code != 0:
-            error_code, status_code, details = classify_cli_error(result.stderr, result.exit_code)
-            if error_code == "SESSION_NOT_FOUND":
-                raise SessionNotFoundError(params.session or "unknown", details)
-            elif error_code == "AUTH_EXPIRED":
-                raise AuthExpiredError(details)
-            elif error_code == "QUOTA_EXCEEDED":
-                raise QuotaExceededError(details)
-            else:
-                raise CLIError(result.stderr or "Log fetch failed", result.exit_code, details)
-
-        if params.session:
-            logs = parse_log_output(result.stdout)
-            return SessionLogResult(logs=logs, session=params.session)
-        else:
-            sessions = parse_log_list_output(result.stdout)
-            return SessionLogResult(logs=sessions, session=None)
