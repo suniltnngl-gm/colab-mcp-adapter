@@ -101,4 +101,4 @@
 | Item | Status | Action Required |
 |------|--------|-----------------|
 | Colab MCP Git Remote URL | ✅ Resolved | `origin` = https://github.com/suniltnngl-gm/colab-mcp-adapter.git; `main` + `v0.1.0` pushed |
-| Push `opencode-os` to origin | ⏳ Ready | 1 commit ahead of origin/master; awaiting push command |
+| Push `opencode-os` to origin | ⏳ Ready | Moved into `D:\`; 1 commit ahead of origin/master; awaiting push command |
