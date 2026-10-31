@@ -34,7 +34,7 @@ classifiers = [
     "Topic :: Scientific/Engineering"
 ]
 dependencies = [
-    "fastmcp>=2.0,<3",
+    "fastmcp>=2.0,<4",
     "pydantic>=2.10",
 ]
 
