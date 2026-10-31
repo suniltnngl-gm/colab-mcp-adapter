@@ -1,8 +1,10 @@
 # Current Release Readiness — Colab MCP Adapter v0.1.0
 
-**Status:** Local baseline established; package verification passed for this report revision. The release tag remains deferred pending review of the final readiness commit.
+**Status:** **Published.** `v0.1.0` is released from commit `eba0cf0` to `origin`
+(GitHub, `suniltnngl-gm/colab-mcp-adapter`); CI is green on both `main` and the
+`v0.1.0` tag.
 
-**Assessment date:** 2026-10-30  
+**Assessment date:** 2026-10-30 (publication update: 2026-10-31)  
 **Version:** `0.1.0`
 
 ## Remediation and verification
@@ -37,20 +39,21 @@ is itself included in that archive.
 - The baseline commit was created with `core.hooksPath=NUL`, so Git hooks were
   bypassed for that commit. The repository has no configured hooks path and
   only Git's sample hook files are present; no hook validation is claimed.
-- No Git remote is configured. The operator selected **local-only for now**;
-  no destination should be inferred.
-- `v0.1.0` is the proposed release tag and does not currently exist. The
-  manifest and version are consistent with that tag; tag creation is
-  intentionally deferred until the readiness update is committed and its
-  target reviewed. No tag, push, or publication has been performed.
+- The Git remote `origin` is configured as
+  `https://github.com/suniltnngl-gm/colab-mcp-adapter.git`.
+- `v0.1.0` is an annotated release tag. It was originally created on baseline
+  `a846a28` and was **moved** to `eba0cf0` (dedup + lint/type fixes). The
+  remote tag was force-updated to the same commit.
+- `main` was fast-forwarded to `eba0cf0` and pushed. CI runs on both `main`
+  (41219602179) and `v0.1.0` (41219616365) completed successfully.
 
-**Disposition:** The initial baseline commit is clean; this readiness update
-is a follow-up documentation change. The source distribution was rebuilt
-with this report revision and its embedded report and manifest were verified.
-Before tagging, commit this update and confirm the tag target is that commit.
+**Disposition:** The baseline commit is clean and the release is now published.
+The source distribution was rebuilt with the deduplicated source and the
+lint/type fixes; all 71 tests pass, ruff and mypy are clean. `main` was
+fast-forwarded to `eba0cf0`, pushed to `origin`, and the `v0.1.0` tag was moved
+to that same commit and force-pushed. CI succeeded on both `main` and `v0.1.0`.
 The original checkpoint below is retained only as historical context; its
-release-ready and clean-Git claims are superseded. Publishing remains blocked
-until the operator supplies the intended remote.
+release-ready and clean-Git claims are superseded.
 
 ---
 

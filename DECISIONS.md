@@ -17,6 +17,7 @@
 | DEC-005 | 2026-10-30 | Agent permissions: 6 Allow / 2 Ask (Ask for file exec + session stop) | ✅ Implemented | Explicit authorization |
 | DEC-006 | 2026-10-31 | Create annotated release tag `v0.1.0` on commit `a846a28` | ✅ Implemented | Explicit authorization (WO-2026-10-31-001) |
 | DEC-007 | 2026-10-31 | Author GitHub Actions CI workflow for Python 3.11/3.12/3.13 | ✅ Implemented | Explicit authorization (WO-2026-10-31-001) |
+| DEC-008 | 2026-10-31 | Publish `v0.1.0` to GitHub `suniltnngl-gm/colab-mcp-adapter`; fast-forward `main` to `eba0cf0` and move the annotated tag | ✅ Implemented | Explicit authorization |
 
 ---
 
@@ -44,6 +45,7 @@
 | DISP-005 | 2026-10-31 | OpenCode ecosystem inventory complete (read-only) | OpenCode Ecosystem | Explicit |
 | DISP-006 | 2026-10-31 | Colab MCP release tag `v0.1.0` created and verified | Colab MCP | Explicit |
 | DISP-007 | 2026-10-31 | opencode-os provider registry & Kaggle adapter committed | Compute Federation | Explicit |
+| DISP-008 | 2026-10-31 | Colab MCP v0.1.0 published to `origin`; CI green on `main` (41219602179) and `v0.1.0` (41219616365) | Colab MCP | Explicit |
 
 ---
 
@@ -74,7 +76,7 @@
 |------------|--------|---------------|
 | Colab MCP Adapter v0.1.0 Release | ✅ Tagged `v0.1.0` | Authorized |
 | CI/CD Workflow (`.github/workflows/ci.yml`) | ✅ Implemented | Authorized |
-| Remote Publication | ⏳ Blocked on Remote URL | Authorized (Pending URL) |
+| Remote Publication | ✅ Published to `origin` (GitHub) | Authorized |
 | `colab-researcher` Agent | ✅ Validated in v2 runtime | Authorized |
 | OpenCode Ecosystem Inventory | ✅ Complete (read-only) | Authorized |
 | Compute Federation Implementation (Kaggle) | ✅ Complete in `opencode-os` | Authorized |
@@ -86,7 +88,7 @@
 
 | Boundary | Status |
 |----------|--------|
-| Colab adapter v0.1.0 baseline frozen on `a846a28` | ✅ Enforced |
+| Colab adapter v0.1.0 released from `eba0cf0` (annotated tag moved from baseline `a846a28`) | ✅ Enforced |
 | No unconfirmed remote push without destination URL | ✅ Enforced |
 | Colab Free strictly excluded from federation worker pool | ✅ Enforced |
 | Compute jobs default to dry-run/simulation without approval | ✅ Enforced |
@@ -98,5 +100,5 @@
 
 | Item | Status | Action Required |
 |------|--------|-----------------|
-| Colab MCP Git Remote URL | ⏳ Blocked | Operator must supply destination Git remote URL (e.g. GitHub repo) |
+| Colab MCP Git Remote URL | ✅ Resolved | `origin` = https://github.com/suniltnngl-gm/colab-mcp-adapter.git; `main` + `v0.1.0` pushed |
 | Push `opencode-os` to origin | ⏳ Ready | 1 commit ahead of origin/master; awaiting push command |
