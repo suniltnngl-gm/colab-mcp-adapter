@@ -18,7 +18,7 @@
 | DEC-006 | 2026-10-31 | Create annotated release tag `v0.1.0` on commit `a846a28` | ✅ Implemented | Explicit authorization (WO-2026-10-31-001) |
 | DEC-007 | 2026-10-31 | Author GitHub Actions CI workflow for Python 3.11/3.12/3.13 | ✅ Implemented | Explicit authorization (WO-2026-10-31-001) |
 | DEC-008 | 2026-10-31 | Publish `v0.1.0` to GitHub `suniltnngl-gm/colab-mcp-adapter`; fast-forward `main` to `eba0cf0` and move the annotated tag | ✅ Implemented | Explicit authorization |
-| DEC-009 | 2026-10-31 | Remediate Dependabot alerts by raising the `fastmcp` constraint to `>=3.2.0,<4` (lock resolves 3.4.11); the upgrade also drops the transitive `diskcache` dependency | ✅ Implemented | Explicit authorization |
+| DEC-009 | 2026-10-31 | Remediate Dependabot alerts by raising the `fastmcp` constraint to `>=3.2.0,<4` (lock resolves 3.4.11); the upgrade also drops the transitive `diskcache` dependency, and the stale `preedit_backup/` manifest that duplicated the alerts was removed | ✅ Implemented | Explicit authorization |
 
 ---
 
@@ -47,7 +47,7 @@
 | DISP-006 | 2026-10-31 | Colab MCP release tag `v0.1.0` created and verified | Colab MCP | Explicit |
 | DISP-007 | 2026-10-31 | opencode-os provider registry & Kaggle adapter committed | Compute Federation | Explicit |
 | DISP-008 | 2026-10-31 | Colab MCP v0.1.0 published to `origin`; CI green on `main` (41219602179) and `v0.1.0` (41219616365) | Colab MCP | Explicit |
-| DISP-009 | 2026-10-31 | All 7 Dependabot alerts remediated via `fastmcp` 3.4.11; 71 tests pass, ruff and mypy clean, wheel/sdist rebuilt | Colab MCP | Explicit |
+| DISP-009 | 2026-10-31 | All 7 Dependabot alerts remediated via `fastmcp` 3.4.11; stale `preedit_backup/` manifest removed; 71 tests pass, ruff and mypy clean, wheel/sdist rebuilt | Colab MCP | Explicit |
 
 ---
 
