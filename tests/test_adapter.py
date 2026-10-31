@@ -7,47 +7,41 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from colab_mcp_adapter.adapter import ColabAdapter, CLIResult
+from colab_mcp_adapter.adapter import CLIResult, ColabAdapter
 from colab_mcp_adapter.contracts import (
+    CLIError,
+    CodeExecuteParams,
+    ExecutionResult,
+    ExecutionTimeoutError,
+    FileExecuteParams,
+    KernelError,
+    QuotaExceededError,
+    SessionAlreadyExistsError,
     SessionCreateParams,
     SessionGetParams,
-    SessionStopParams,
-    CodeExecuteParams,
-    FileExecuteParams,
-    ExecutionResult,
     SessionGetURLParams,
-    SessionGetURLResult,
     SessionLogParams,
-    SessionLogResult,
     SessionNotFoundError,
-    SessionAlreadyExistsError,
     SessionNotReadyError,
-    ExecutionTimeoutError,
-    KernelError,
-    AuthExpiredError,
-    QuotaExceededError,
-    CLIError,
+    SessionStopParams,
 )
 from colab_mcp_adapter.parser import (
+    classify_cli_error,
+    parse_create_output,
+    parse_log_list_output,
+    parse_log_output,
     parse_session_line,
     parse_sessions_output,
     parse_status_output,
-    parse_create_output,
-    validate_session_id,
-    classify_cli_error,
     parse_url_output,
-    parse_log_output,
-    parse_log_list_output,
-    ParsedSession,
+    validate_session_id,
 )
-
 
 # --- Parser Tests ---
 
@@ -57,7 +51,7 @@ class TestSessionLineParsing:
     def test_parse_session_line_with_status(self):
         line = "[test-session] m-s-abc123 | Hardware: GPU | Shape: Standard | Variant: T4 | Status: IDLE"
         parsed = parse_session_line(line)
-        
+
         assert parsed is not None
         assert parsed.name == "test-session"
         assert parsed.session_id == "m-s-abc123"
@@ -69,7 +63,7 @@ class TestSessionLineParsing:
     def test_parse_session_line_without_status(self):
         line = "[test-session] m-s-abc123 | Hardware: CPU | Shape: Standard | Variant: DEFAULT"
         parsed = parse_session_line(line)
-        
+
         assert parsed is not None
         assert parsed.name == "test-session"
         assert parsed.session_id == "m-s-abc123"
@@ -97,7 +91,7 @@ class TestSessionLineParsing:
         output = """[session1] m-s-id1 | Hardware: CPU | Shape: Standard | Variant: DEFAULT | Status: IDLE
 [session2] m-s-id2 | Hardware: GPU | Shape: High-Mem | Variant: T4 | Status: RUNNING"""
         sessions = parse_sessions_output(output)
-        
+
         assert len(sessions) == 2
         assert sessions[0].name == "session1"
         assert sessions[1].name == "session2"
@@ -107,7 +101,7 @@ class TestSessionLineParsing:
 [session1] m-s-id1 | Hardware: CPU | Shape: Standard | Variant: DEFAULT | Status: IDLE
 [colab] Session READY."""
         sessions = parse_sessions_output(output)
-        
+
         assert len(sessions) == 1
         assert sessions[0].name == "session1"
 
@@ -119,7 +113,7 @@ class TestSessionLineParsing:
     def test_parse_status_output(self):
         output = """[test-session] m-s-abc123 | Hardware: GPU | Shape: Standard | Variant: T4 | Status: RUNNING"""
         parsed = parse_status_output(output)
-        
+
         assert parsed is not None
         assert parsed.name == "test-session"
         assert parsed.session_id == "m-s-abc123"
@@ -129,7 +123,7 @@ class TestSessionLineParsing:
         output = """[colab] Creating session 'my-session'...
 [colab] Session READY."""
         parsed = parse_create_output(output)
-        
+
         assert parsed is not None
         assert parsed.name == "my-session"
         assert parsed.status == "CREATING"
@@ -208,12 +202,12 @@ class TestErrorClassification:
 
 class MockedColabAdapter(ColabAdapter):
     """ColabAdapter with mocked _run_cli for testing."""
-    
+
     def __init__(self, mock_results: dict[tuple[str, ...], CLIResult]):
         super().__init__(colab_cmd="colab")
         self._mock_results = mock_results
         self._call_log: list[tuple[list[str], int, str | None]] = []
-    
+
     def _run_cli(self, args: list[str], timeout: int, stdin_input: str | None = None) -> CLIResult:
         """Mock _run_cli - receives args WITHOUT colab_cmd prefix (since we override the method)."""
         self._call_log.append((args, timeout, stdin_input))
@@ -234,9 +228,9 @@ class TestColabAdapterCreateSession:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.create_session(SessionCreateParams())
-        
+
         assert result.name == "test"
         assert result.session_id == "m-s-abc123"
         assert result.hardware == "CPU"
@@ -256,9 +250,9 @@ class TestColabAdapterCreateSession:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.create_session(SessionCreateParams(name="my-session"))
-        
+
         assert result.name == "my-session"
         assert result.session_id == "m-s-xyz789"
 
@@ -272,9 +266,9 @@ class TestColabAdapterCreateSession:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.create_session(SessionCreateParams(gpu="T4"))
-        
+
         assert result.hardware == "GPU"
         assert result.variant == "T4"
 
@@ -283,7 +277,7 @@ class TestColabAdapterCreateSession:
             ("new", "--session", "existing"): CLIResult(1, "", "Error: session already exists"),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(SessionAlreadyExistsError):
             adapter.create_session(SessionCreateParams(name="existing"))
 
@@ -292,7 +286,7 @@ class TestColabAdapterCreateSession:
             ("new",): CLIResult(1, "", "quota exceeded for this account"),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(QuotaExceededError):
             adapter.create_session(SessionCreateParams())
 
@@ -310,9 +304,9 @@ class TestColabAdapterListSessions:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.list_sessions()
-        
+
         assert len(result.sessions) == 2
         assert result.sessions[0].name == "session1"
         assert result.sessions[1].name == "session2"
@@ -322,9 +316,9 @@ class TestColabAdapterListSessions:
             ("sessions",): CLIResult(0, "[colab] No active sessions found on server.\n", ""),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.list_sessions()
-        
+
         assert result.sessions == []
 
 
@@ -340,9 +334,9 @@ class TestColabAdapterGetSession:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.get_session(SessionGetParams(name="test"))
-        
+
         assert result.name == "test"
         assert result.session_id == "m-s-abc123"
         assert result.status == "IDLE"
@@ -354,15 +348,15 @@ class TestColabAdapterGetSession:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(SessionNotFoundError) as exc_info:
             adapter.get_session(SessionGetParams(name="nonexistent"))
-        
+
         assert exc_info.value.details["session_name"] == "nonexistent"
 
     def test_get_session_empty_name(self):
         adapter = MockedColabAdapter({})
-        
+
         with pytest.raises(SessionNotFoundError):
             adapter.get_session(SessionGetParams(name=""))
 
@@ -380,9 +374,9 @@ class TestColabAdapterStopSession:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.stop_session(SessionStopParams(name="test"))
-        
+
         assert result.name == "test"
         assert result.terminated is True
 
@@ -393,7 +387,7 @@ class TestColabAdapterStopSession:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(SessionNotFoundError):
             adapter.stop_session(SessionStopParams(name="nonexistent"))
 
@@ -405,7 +399,7 @@ class TestColabAdapterStopSession:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(SessionNotReadyError):
             adapter.stop_session(SessionStopParams(name="test"))
 
@@ -508,9 +502,9 @@ class TestColabAdapterExecuteCode:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.execute_code(CodeExecuteParams(session="test", code="print('hello')"))
-        
+
         assert result.stdout == "hello\n"
         assert result.stderr == ""
         assert result.exit_code == 0
@@ -523,7 +517,7 @@ class TestColabAdapterExecuteCode:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.execute_code(
             CodeExecuteParams(
                 session="test",
@@ -531,7 +525,7 @@ class TestColabAdapterExecuteCode:
                 env={"FOO": "bar"},
             )
         )
-        
+
         assert result.stdout == "FOO=bar\n"
 
     def test_execute_code_session_not_found(self):
@@ -541,7 +535,7 @@ class TestColabAdapterExecuteCode:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(SessionNotFoundError):
             adapter.execute_code(CodeExecuteParams(session="nonexistent", code="print()"))
 
@@ -552,10 +546,10 @@ class TestColabAdapterExecuteCode:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(ExecutionTimeoutError) as exc_info:
             adapter.execute_code(CodeExecuteParams(session="test", code="import time; time.sleep(100)", timeout=10))
-        
+
         assert exc_info.value.details["timeout_seconds"] == 10
 
     def test_execute_code_kernel_error(self):
@@ -565,7 +559,7 @@ class TestColabAdapterExecuteCode:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(KernelError):
             adapter.execute_code(CodeExecuteParams(session="test", code="print(x)"))
 
@@ -580,9 +574,9 @@ class TestColabAdapterExecuteFile:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.execute_file(FileExecuteParams(session="test", file_path="/path/script.py"))
-        
+
         assert result.stdout == "from file\n"
         assert result.stderr == ""
         assert result.exit_code == 0
@@ -594,7 +588,7 @@ class TestColabAdapterExecuteFile:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(SessionNotFoundError):
             adapter.execute_file(FileExecuteParams(session="nonexistent", file_path="/path/script.py"))
 
@@ -605,10 +599,10 @@ class TestColabAdapterExecuteFile:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(CLIError) as exc_info:
             adapter.execute_file(FileExecuteParams(session="test", file_path="/nonexistent.py"))
-        
+
         assert "File not found" in exc_info.value.message
 
     def test_execute_file_timeout(self):
@@ -618,7 +612,7 @@ class TestColabAdapterExecuteFile:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(ExecutionTimeoutError):
             adapter.execute_file(FileExecuteParams(session="test", file_path="/path/slow.py", timeout=5))
 
@@ -629,7 +623,7 @@ class TestColabAdapterExecuteFile:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(KernelError):
             adapter.execute_file(FileExecuteParams(session="test", file_path="/path/error.py"))
 
@@ -709,9 +703,9 @@ class TestColabAdapterGetSessionUrl:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.get_session_url(SessionGetURLParams(session="test"))
-        
+
         assert result.url == "https://colab.research.google.com/notebooks/empty.ipynb?dbu=test"
 
     def test_get_session_url_with_host(self):
@@ -721,9 +715,9 @@ class TestColabAdapterGetSessionUrl:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.get_session_url(SessionGetURLParams(session="test", host="https://custom.colab.com"))
-        
+
         assert result.url == "https://custom.colab.com/notebooks/empty.ipynb?dbu=test"
 
     def test_get_session_url_not_found(self):
@@ -733,13 +727,13 @@ class TestColabAdapterGetSessionUrl:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(SessionNotFoundError):
             adapter.get_session_url(SessionGetURLParams(session="nonexistent"))
 
     def test_get_session_url_empty_name(self):
         adapter = MockedColabAdapter({})
-        
+
         with pytest.raises(SessionNotFoundError):
             adapter.get_session_url(SessionGetURLParams(session=""))
 
@@ -755,9 +749,9 @@ class TestColabAdapterGetSessionLog:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.get_session_log(SessionLogParams(session="test"))
-        
+
         assert result.session == "test"
         assert len(result.logs) == 2
         assert result.logs[0] == "[2026-10-30 13:34:27] EVENT: session_created"
@@ -769,9 +763,9 @@ class TestColabAdapterGetSessionLog:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.get_session_log(SessionLogParams(session="test", lines=5))
-        
+
         assert result.session == "test"
 
     def test_get_session_log_with_type(self):
@@ -781,9 +775,9 @@ class TestColabAdapterGetSessionLog:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.get_session_log(SessionLogParams(session="test", type="execution"))
-        
+
         assert result.session == "test"
         assert result.logs[0].startswith("[2026-10-30 13:35:50] EXEC:")
 
@@ -796,9 +790,9 @@ class TestColabAdapterGetSessionLog:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         result = adapter.get_session_log(SessionLogParams())
-        
+
         assert result.session is None
         assert result.logs == ["session1", "session2"]
 
@@ -809,6 +803,6 @@ class TestColabAdapterGetSessionLog:
             ),
         }
         adapter = MockedColabAdapter(mock_results)
-        
+
         with pytest.raises(SessionNotFoundError):
             adapter.get_session_log(SessionLogParams(session="nonexistent"))

@@ -35,7 +35,7 @@ jobs:
   lint:
     name: Lint & Typecheck
     runs-on: ubuntu-latest
-    continue-on-error: true
+
     steps:
       - uses: actions/checkout@v4
 
@@ -51,10 +51,10 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run ruff check
-        run: uv run ruff check . --exit-zero
+        run: uv run ruff check .
 
       - name: Run mypy
-        run: uv run mypy src --ignore-missing-imports || true
+        run: uv run mypy src --ignore-missing-imports
 
   build:
     name: Build Packages

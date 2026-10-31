@@ -9,29 +9,21 @@ from fastmcp.exceptions import ToolError
 
 from .adapter import ColabAdapter
 from .contracts import (
+    CodeExecuteParams,
+    ColabMCPError,
+    ExecutionResult,
+    FileExecuteParams,
     SessionCreateParams,
     SessionCreateResult,
-    SessionListResult,
     SessionGetParams,
     SessionGetResult,
-    SessionStopParams,
-    SessionStopResult,
-    CodeExecuteParams,
-    FileExecuteParams,
-    ExecutionResult,
     SessionGetURLParams,
     SessionGetURLResult,
+    SessionListResult,
     SessionLogParams,
     SessionLogResult,
-    ColabMCPError,
-    SessionNotFoundError,
-    SessionAlreadyExistsError,
-    SessionNotReadyError,
-    ExecutionTimeoutError,
-    KernelError,
-    AuthExpiredError,
-    QuotaExceededError,
-    CLIError,
+    SessionStopParams,
+    SessionStopResult,
 )
 
 mcp = FastMCP("colab-mcp-adapter")
@@ -55,16 +47,16 @@ def colab_session_create(
     high_mem: bool = False,
 ) -> SessionCreateResult:
     """Create a new Colab session.
-    
+
     Args:
         name: Optional session name (auto-generated if omitted)
         gpu: GPU variant: T4, L4, G4, H100, A100
         tpu: TPU variant: v5e1, v6e1
         high_mem: Request high-RAM machine shape (requires Pro/Pro+)
-        
+
     Returns:
         Session info including name, session_id, hardware, shape, variant, status
-        
+
     Raises:
         ToolError: SESSION_ALREADY_EXISTS, QUOTA_EXCEEDED, AUTH_EXPIRED, CLI_ERROR
     """
@@ -83,10 +75,10 @@ def colab_session_create(
 @mcp.tool()
 def colab_session_list() -> SessionListResult:
     """List all active Colab sessions.
-    
+
     Returns:
         List of sessions with name, session_id, hardware, shape, variant, status
-        
+
     Raises:
         ToolError: AUTH_EXPIRED, CLI_ERROR
     """
@@ -99,13 +91,13 @@ def colab_session_list() -> SessionListResult:
 @mcp.tool()
 def colab_session_get(name: str) -> SessionGetResult:
     """Get status of a specific Colab session.
-    
+
     Args:
         name: Session display name
-        
+
     Returns:
         Session info including name, session_id, hardware, shape, variant, status
-        
+
     Raises:
         ToolError: SESSION_NOT_FOUND, AUTH_EXPIRED, CLI_ERROR
     """
@@ -119,17 +111,17 @@ def colab_session_get(name: str) -> SessionGetResult:
 @mcp.tool()
 def colab_session_stop(name: str) -> SessionStopResult:
     """Stop (terminate and delete) a Colab session.
-    
+
     WARNING: This is a destructive operation. The session and its kernel
     state will be permanently deleted. Files in /content persist on the
     runtime filesystem but the session cannot be resumed.
-    
+
     Args:
         name: Session display name
-        
+
     Returns:
         Confirmation that session was terminated
-        
+
     Raises:
         ToolError: SESSION_NOT_FOUND, AUTH_EXPIRED, CLI_ERROR
     """
@@ -148,16 +140,16 @@ def colab_code_execute(
     env: dict[str, str] | None = None,
 ) -> ExecutionResult:
     """Execute Python code in a Colab session via stdin pipe.
-    
+
     Args:
         session: Session display name
         code: Python code to execute
         timeout: Execution timeout in seconds (1-300, default: 30)
         env: Environment variables to set before execution
-        
+
     Returns:
         Execution result with stdout, stderr, exit_code, execution_time
-        
+
     Raises:
         ToolError: SESSION_NOT_FOUND, EXECUTION_TIMEOUT, KERNEL_ERROR, AUTH_EXPIRED, QUOTA_EXCEEDED, CLI_ERROR
     """
@@ -181,16 +173,16 @@ def colab_file_execute(
     env: dict[str, str] | None = None,
 ) -> ExecutionResult:
     """Execute a Python file in a Colab session.
-    
+
     Args:
         session: Session display name
         file_path: Path to Python file to execute
         timeout: Execution timeout in seconds (1-300, default: 30)
         env: Environment variables to set before execution
-        
+
     Returns:
         Execution result with stdout, stderr, exit_code, execution_time
-        
+
     Raises:
         ToolError: SESSION_NOT_FOUND, EXECUTION_TIMEOUT, KERNEL_ERROR, AUTH_EXPIRED, QUOTA_EXCEEDED, CLI_ERROR
     """
@@ -212,14 +204,14 @@ def colab_session_get_url(
     host: str | None = None,
 ) -> SessionGetURLResult:
     """Get the browser URL for a Colab session.
-    
+
     Args:
         session: Session display name
         host: Optional Colab frontend host (default: https://colab.research.google.com)
-        
+
     Returns:
         Full Colab browser URL for the session
-        
+
     Raises:
         ToolError: SESSION_NOT_FOUND, AUTH_EXPIRED, QUOTA_EXCEEDED, CLI_ERROR
     """
@@ -237,15 +229,15 @@ def colab_session_log(
     type: str | None = None,
 ) -> SessionLogResult:
     """Get session history logs.
-    
+
     Args:
         session: Session display name (omit to list all sessions with logs)
         lines: Number of lines to show (default: all)
         type: Filter by event type (e.g., execution, file_operation, session_created)
-        
+
     Returns:
         Log lines for the session, or list of sessions with logs if session omitted
-        
+
     Raises:
         ToolError: SESSION_NOT_FOUND, AUTH_EXPIRED, QUOTA_EXCEEDED, CLI_ERROR
     """

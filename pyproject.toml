@@ -78,6 +78,7 @@ target-version = "py311"
 line-length = 100
 select = ["E", "F", "I", "W", "UP", "B", "C4", "SIM", "T20"]
 ignore = ["S101", "S106"]
+[tool.ruff.lint]
 fixable = ["ALL"]
 unfixable = ["T20"]
 
@@ -98,4 +99,9 @@ exclude_lines = [
     "def __repr__",
     "raise AssertionError",
     "raise NotImplementedError",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.1",
 ]

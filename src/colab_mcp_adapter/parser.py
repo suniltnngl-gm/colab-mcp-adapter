@@ -7,10 +7,8 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 from .contracts import SessionInfo
-
 
 # Regex for parsing session lines from `colab sessions` and `colab status`
 # Format: [name] m-s-<id> | Hardware: <hw> | Shape: <shape> | Variant: <variant> [| Status: <status>]
@@ -45,7 +43,7 @@ class ParsedSession:
     hardware: str
     shape: str
     variant: str
-    status: Optional[str] = None
+    status: str | None = None
 
     def to_session_info(self) -> SessionInfo:
         """Convert to SessionInfo model."""
@@ -64,28 +62,28 @@ def validate_session_id(session_id: str) -> bool:
     return bool(SESSION_ID_REGEX.match(session_id))
 
 
-def parse_session_line(line: str) -> Optional[ParsedSession]:
+def parse_session_line(line: str) -> ParsedSession | None:
     """Parse a single session line from `colab sessions` or `colab status` output.
-    
+
     Args:
         line: A single line of CLI output
-        
+
     Returns:
         ParsedSession if line matches, None otherwise
     """
     line = line.strip()
     if not line:
         return None
-    
+
     match = SESSION_LINE_REGEX.match(line)
     if not match:
         return None
-    
+
     name, session_id, hardware, shape, variant, status = match.groups()
-    
+
     if not validate_session_id(session_id):
         return None
-    
+
     return ParsedSession(
         name=name,
         session_id=session_id,
@@ -98,10 +96,10 @@ def parse_session_line(line: str) -> Optional[ParsedSession]:
 
 def parse_sessions_output(output: str) -> list[ParsedSession]:
     """Parse multiple session lines from `colab sessions` output.
-    
+
     Args:
         output: Full stdout from `colab sessions`
-        
+
     Returns:
         List of parsed sessions (empty if none found)
     """
@@ -119,12 +117,12 @@ def parse_sessions_output(output: str) -> list[ParsedSession]:
     return sessions
 
 
-def parse_status_output(output: str) -> Optional[ParsedSession]:
+def parse_status_output(output: str) -> ParsedSession | None:
     """Parse `colab status --session <name>` output.
-    
+
     Args:
         output: Full stdout from `colab status`
-        
+
     Returns:
         ParsedSession if found, None otherwise
     """
@@ -141,13 +139,13 @@ def parse_status_output(output: str) -> Optional[ParsedSession]:
     return None
 
 
-def parse_create_output(output: str) -> Optional[ParsedSession]:
+def parse_create_output(output: str) -> ParsedSession | None:
     """Parse `colab new` output to extract session info.
-    
+
     Output format:
     [colab] Creating session 'name'...
     [colab] Session READY.
-    
+
     The session name is in the first line. We need to follow up with `colab status`
     to get full details, but we can extract the name here.
     """
@@ -174,44 +172,44 @@ def parse_create_output(output: str) -> Optional[ParsedSession]:
 
 def classify_cli_error(stderr: str, exit_code: int) -> tuple[str, int, dict]:
     """Classify CLI error from stderr and exit code.
-    
+
     Returns:
         Tuple of (error_code, status_code, details)
     """
     stderr_lower = stderr.lower()
-    
+
     if ERROR_SESSION_NOT_FOUND.search(stderr):
         match = ERROR_SESSION_NOT_FOUND.search(stderr)
         session_name = match.group(1) if match else "unknown"
         return ("SESSION_NOT_FOUND", 404, {"session_name": session_name})
-    
+
     if ERROR_ALREADY_EXISTS.search(stderr):
         return ("SESSION_ALREADY_EXISTS", 409, {})
-    
+
     if ERROR_NOT_READY.search(stderr):
         return ("SESSION_NOT_READY", 409, {})
-    
+
     if ERROR_TIMEOUT.search(stderr):
         return ("EXECUTION_TIMEOUT", 408, {})
-    
+
     if ERROR_QUOTA_EXCEEDED.search(stderr):
         return ("QUOTA_EXCEEDED", 429, {})
-    
+
     if ERROR_AUTH.search(stderr):
         return ("AUTH_EXPIRED", 401, {})
-    
+
     if "no history found" in stderr_lower:
         match = re.search(r"session '(.+?)'", stderr)
         session_name = match.group(1) if match else "unknown"
         return ("SESSION_NOT_FOUND", 404, {"session_name": session_name, "reason": "no_history"})
-    
+
     # Generic CLI error
     return ("CLI_ERROR", 500, {"exit_code": exit_code, "stderr": stderr[:500]})
 
 
-def parse_url_output(output: str) -> Optional[str]:
+def parse_url_output(output: str) -> str | None:
     """Parse `colab url --session <name>` output.
-    
+
     Returns:
         URL string if found, None otherwise
     """
@@ -230,7 +228,7 @@ def parse_url_output(output: str) -> Optional[str]:
 
 def parse_log_output(output: str) -> list[str]:
     """Parse `colab log --session <name>` output.
-    
+
     Returns:
         List of log lines (empty if none found)
     """
@@ -250,7 +248,7 @@ def parse_log_output(output: str) -> list[str]:
 
 def parse_log_list_output(output: str) -> list[str]:
     """Parse `colab log` (no session) output - list of sessions with logs.
-    
+
     Returns:
         List of session names/identifiers
     """
