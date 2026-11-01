@@ -8,6 +8,7 @@ from fastmcp import FastMCP
 from fastmcp.exceptions import ToolError
 
 from .adapter import ColabAdapter
+from .config import get_config
 from .contracts import (
     CodeExecuteParams,
     ColabMCPError,
@@ -27,7 +28,13 @@ from .contracts import (
 )
 
 mcp = FastMCP("colab-mcp-adapter")
-adapter = ColabAdapter()
+
+# Load configuration from .env
+config = get_config()
+adapter = ColabAdapter(
+    colab_cmd=config.colab_cli_path,
+    default_timeout=config.colab_cli_timeout_seconds,
+)
 
 
 def _map_error(e: ColabMCPError) -> ToolError:
