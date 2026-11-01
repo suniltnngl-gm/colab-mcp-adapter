@@ -51,8 +51,9 @@ is itself included in that archive.
   remote tag was force-updated to the same commit.
 - `main` was fast-forwarded to `eba0cf0` and pushed. CI runs on both `main`
   (41219602179) and `v0.1.0` (41219616365) completed successfully.
-- `v0.1.1` is an annotated security-patch tag on the release commit that
-  carries the `fastmcp` 3.4.11 lock and the `preedit_backup/` removal.
+- `v0.1.1` is an annotated security-patch tag on release commit `acf1067`.
+  CI runs on `main` (41261191881) and `v0.1.1` (41261194385) completed
+  successfully.
 
 **Disposition:** `v0.1.1` supersedes `v0.1.0` for installation. The release
 commit carries the deduplicated source, the lint/type fixes, and the dependency

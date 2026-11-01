@@ -49,6 +49,7 @@
 | DISP-007 | 2026-10-31 | opencode-os provider registry & Kaggle adapter committed | Compute Federation | Explicit |
 | DISP-008 | 2026-10-31 | Colab MCP v0.1.0 published to `origin`; CI green on `main` (41219602179) and `v0.1.0` (41219616365) | Colab MCP | Explicit |
 | DISP-009 | 2026-10-31 | All 7 Dependabot alerts remediated via `fastmcp` 3.4.11; stale `preedit_backup/` manifest removed; 71 tests pass, ruff and mypy clean, wheel/sdist rebuilt | Colab MCP | Explicit |
+| DISP-010 | 2026-11-01 | Colab MCP `v0.1.1` security patch released from `acf1067`; CI green on `main` (41261191881) and `v0.1.1` (41261194385); all 7 Dependabot alerts `fixed` | Colab MCP | Explicit |
 
 ---
 
