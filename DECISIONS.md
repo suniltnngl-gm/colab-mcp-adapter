@@ -19,6 +19,7 @@
 | DEC-007 | 2026-10-31 | Author GitHub Actions CI workflow for Python 3.11/3.12/3.13 | ✅ Implemented | Explicit authorization (WO-2026-10-31-001) |
 | DEC-008 | 2026-10-31 | Publish `v0.1.0` to GitHub `suniltnngl-gm/colab-mcp-adapter`; fast-forward `main` to `eba0cf0` and move the annotated tag | ✅ Implemented | Explicit authorization |
 | DEC-009 | 2026-10-31 | Remediate Dependabot alerts by raising the `fastmcp` constraint to `>=3.2.0,<4` (lock resolves 3.4.11); the upgrade also drops the transitive `diskcache` dependency, and the stale `preedit_backup/` manifest that duplicated the alerts was removed | ✅ Implemented | Explicit authorization |
+| DEC-010 | 2026-11-01 | Cut `v0.1.1` as a security patch release so the published tag no longer ships the vulnerable `fastmcp` 2.14.7 lock | ✅ Implemented | Explicit authorization |
 
 ---
 

@@ -1,7 +1,7 @@
-# Colab MCP Adapter v0.1.0 Release Manifest
+# Colab MCP Adapter v0.1.1 Release Manifest
 
-This manifest defines the intended source-control contents for the initial
-`v0.1.0` release. It excludes `.git`, local virtual environments, caches,
+This manifest defines the intended source-control contents for the `v0.1.1`
+patch release. It excludes `.git`, local virtual environments, caches,
 bytecode, and build output.
 
 ## Repository release contents
@@ -42,13 +42,13 @@ the release is considered ready.
 
 ## Version and entry point
 
-- Package version: `0.1.0`
+- Package version: `0.1.1`
 - Distribution name: `colab-mcp-adapter`
 - Console entry point: `colab-mcp-adapter`
 - Supported Python: `>=3.11`
 
 ## Release controls
 
-- Keep the Colab MCP v0.1.0 implementation independent of compute federation.
+- Keep the Colab MCP v0.1.1 implementation independent of compute federation.
 - Do not include credentials, runtime data, or local environment files.
 - The source manifest does not authorize commit, tag, push, or publication.

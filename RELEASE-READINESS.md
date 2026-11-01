@@ -1,14 +1,19 @@
-# Current Release Readiness — Colab MCP Adapter v0.1.0
+# Current Release Readiness — Colab MCP Adapter v0.1.1
 
-**Status:** **Published.** `v0.1.0` is released from commit `eba0cf0` to `origin`
-(GitHub, `suniltnngl-gm/colab-mcp-adapter`); CI is green on both `main` and the
-`v0.1.0` tag.
+**Status:** **Published.** `v0.1.1` is the current security patch release on
+`main` (GitHub, `suniltnngl-gm/colab-mcp-adapter`). `v0.1.0` remains available
+at its original tag and is superseded by this patch.
 
-**Assessment date:** 2026-10-30 (publication update: 2026-10-31)  
-**Version:** `0.1.0`
+**Assessment date:** 2026-11-01  
+**Version:** `0.1.1`
 
 ## Remediation and verification
 
+- `v0.1.1` raises the runtime constraint to `fastmcp>=3.2.0,<4` (lock resolves
+  `3.4.11`), which clears all six FastMCP advisories and removes the transitive
+  `diskcache` dependency; all seven Dependabot alerts report `fixed`.
+- Removed the stale `preedit_backup/` copies of `pyproject.toml` and `ci.yml`
+  that Dependabot scanned as a separate pip manifest.
 - Corrected the README to show the OpenCode v2 MCP/agent configuration, removed
   its missing `TASKS.md` tree entry, and documented that free managed Colab is
   not a distributed worker.
@@ -46,14 +51,14 @@ is itself included in that archive.
   remote tag was force-updated to the same commit.
 - `main` was fast-forwarded to `eba0cf0` and pushed. CI runs on both `main`
   (41219602179) and `v0.1.0` (41219616365) completed successfully.
+- `v0.1.1` is an annotated security-patch tag on the release commit that
+  carries the `fastmcp` 3.4.11 lock and the `preedit_backup/` removal.
 
-**Disposition:** The baseline commit is clean and the release is now published.
-The source distribution was rebuilt with the deduplicated source and the
-lint/type fixes; all 71 tests pass, ruff and mypy are clean. `main` was
-fast-forwarded to `eba0cf0`, pushed to `origin`, and the `v0.1.0` tag was moved
-to that same commit and force-pushed. CI succeeded on both `main` and `v0.1.0`.
-The original checkpoint below is retained only as historical context; its
-release-ready and clean-Git claims are superseded.
+**Disposition:** `v0.1.1` supersedes `v0.1.0` for installation. The release
+commit carries the deduplicated source, the lint/type fixes, and the dependency
+remediation; all 71 tests pass, ruff and mypy are clean, and both archives are
+rebuilt. All Dependabot alerts on the default branch are `fixed`. The `v0.1.0`
+and historical checkpoint sections below are retained as historical context.
 
 ---
 
